@@ -5,7 +5,10 @@
  */
 package autolab.grid;
 
-import autolab.math.AutolabMath;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -13,23 +16,24 @@ import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.FeatureCollection;
-import org.geotools.feature.FeatureCollections;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.jts.JTSFactoryFinder;
+import org.geotools.process.raster.ContourProcess;
+
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
+
+import autolab.math.AutolabMath;
 
 /**
  *
@@ -275,7 +279,7 @@ public class HachureBuilder {
         GeometryFactory gFactory = JTSFactoryFinder.getGeometryFactory();
         SimpleFeatureBuilder fBuilder = new SimpleFeatureBuilder(TYPE);
         
-        FeatureCollection collection = FeatureCollections.newCollection();
+        DefaultFeatureCollection collection = new DefaultFeatureCollection();
         
         for(Coordinate c: seeds){
             Point point = gFactory.createPoint(c);

@@ -4,7 +4,6 @@
  */
 package autolab.math;
 
-import autolab.geovector.Geopoint;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Point;
 
@@ -134,38 +133,11 @@ public class AutolabMath {
      * @param p3
      * @return 
      */
-    public static boolean pointSide(Geopoint p1, Geopoint p2, Geopoint p3){
-        double L = (p3.x - p1.x)*(p2.y - p1.y) - (p3.y - p1.y)*(p2.x - p1.x);
-        return L<0;
-    }
-    
-    /**
-     * Defines from which side of p1-p2 line segment p3 point is located
-     * @param p1
-     * @param p2
-     * @param p3
-     * @return 
-     */
     public static boolean pointSide(Coordinate p1, Coordinate p2, Coordinate p3){
         double L = (p3.x - p1.x)*(p2.y - p1.y) - (p3.y - p1.y)*(p2.x - p1.x);
         return L<0;
     }
     
-    /**
-     * Tests intersection between p1-p2 and p3-p4 line segments
-     * @param p1
-     * @param p2
-     * @param p3
-     * @param p4
-     * @return 
-     */
-    public static boolean testIntersection(Geopoint p1, Geopoint p2, 
-                                           Geopoint p3, Geopoint p4){
-        if((pointSide(p1,p2,p3)!=pointSide(p1,p2,p4)) &&
-           (pointSide(p3,p4,p1)!=pointSide(p3,p4,p2)))
-            return true;
-        else return false;
-    }
     
     /**
      * Tests intersection between p1-p2 and p3-p4 line segments
