@@ -34,6 +34,8 @@ import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
 
 import autolab.math.AutolabMath;
+import java.lang.Math;
+import java.util.Arrays;
 
 /**
  *
@@ -73,6 +75,47 @@ public class HachureBuilder {
     
     /**
      * Hachures constructor
+     * @param dem elevation data
+     * @param z0 start elevation level
+     * @param dz contour interval
+     */
+    public HachureBuilder(GridCoverage2D dem,
+                          Double z0,
+                          Double dz){
+        this.gp = new GridProcessor(dem);
+        this.isVector = false;
+        
+        Double zmin = gp.getHeader().zmin;
+        Double zmax = gp.getHeader().zmax;
+        
+        // Define the basic level
+        double level = zmin + (z0 - zmin) % dz + dz * ((zmin > z0) ? 1 : 0);
+        
+        int nlevels = (int)Math.floor((zmax-level)/z0) + 1;
+        double[] contourLevels = new double[nlevels];
+        levels =  new ArrayList<>(nlevels);
+        
+        for(int i = 0; i < nlevels; i++){
+            contourLevels[i] = level;
+            levels.set(i, level);
+            level += dz;
+        }
+        
+        this.contours = ContourProcess.process(dem, 0, contourLevels, dz, true, true, null, null);
+        this.HField = "value";
+        
+        // Sort levels in decreasing order
+        Comparator cmp = Collections.reverseOrder();
+        Collections.sort(levels,cmp);
+        
+        // add minimum and maximum
+        levels.add(zmin);
+        levels.add(0,zmax);
+        
+    }
+    
+    /**
+     * Hachures constructor
      * @param dem Digital elevation model
      * @param contours contours (sorted high to low)
      * @param HField height field
@@ -81,10 +124,10 @@ public class HachureBuilder {
                     FeatureCollection contours,
                     String HField)
     {
-        gp = new GridProcessor(dem);
+        this.gp = new GridProcessor(dem);
         this.contours = (SimpleFeatureCollection)contours;
         this.HField = HField;
-        isVector = false;
+        this.isVector = false;
         
         // Get contour levels values
         
