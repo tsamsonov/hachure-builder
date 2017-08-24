@@ -5,7 +5,7 @@
         <group name="Autolab">
             <file>file:/Volumes/Data/GitHub/hachure-builder/src/autolab/grid/HachureBuilder.java</file>
             <file>file:/Volumes/Data/GitHub/hachure-builder/src/autolab/math/AutolabMath.java</file>
-            <file>file:/Volumes/Data/GitHub/hachure-builder/src/autolab/hachurebuilder/Main.java</file>
+            <file>file:/Volumes/Data/GitHub/hachure-builder/src/autolab/grid/GridHeader.java</file>
         </group>
     </open-files>
 </project-private>

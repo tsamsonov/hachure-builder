@@ -34,8 +34,6 @@ import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
 
 import autolab.math.AutolabMath;
-import java.lang.Math;
-import java.util.Arrays;
 
 /**
  *
@@ -218,9 +216,9 @@ public class HachureBuilder {
         
         this.minSlope = minSlope*Math.PI/180;
         this.maxTurn = maxTurn*Math.PI/180;
-        this.dist = dist*gp.getHeader().res; // hachure distance
+        this.dist = dist*gp.getHeader().res;       // hachure distance
         this.mindist = minDist*gp.getHeader().res; // hachure min distance
-        this.step = step*gp.getHeader().res; // approximation step
+        this.step = step*gp.getHeader().res;       // approximation step
         this.maxDepth = maxDepth;
 
         // prepare distances
