@@ -6,13 +6,30 @@
 package autolab.hachurebuilder;
 
 import autolab.grid.HachureBuilder;
+import com.vividsolutions.jts.geom.LineString;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
+import java.net.MalformedURLException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
 import org.geotools.coverage.grid.io.GridCoverage2DReader;
 import org.geotools.coverage.grid.io.GridFormatFinder;
+import org.geotools.data.DefaultTransaction;
+import org.geotools.data.Transaction;
+import org.geotools.data.shapefile.ShapefileDataStore;
+import org.geotools.data.shapefile.ShapefileDataStoreFactory;
+import org.geotools.data.simple.SimpleFeatureIterator;
+import org.geotools.data.simple.SimpleFeatureSource;
+import org.geotools.data.simple.SimpleFeatureStore;
 import org.geotools.feature.FeatureCollection;
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
@@ -31,8 +48,8 @@ public class Main {
             System.err.println("ARGUMENTS ERROR: " + nargs + " arguments given. 10 expected");
         } else {
             try{
-                String demfile = args[0];
-                String output = args[1];
+                String dempath = args[0];
+                String outpath = args[1];
                 double z0 = Double.parseDouble(args[2]);
                 double dz = Double.parseDouble(args[3]);
                 double dist = Double.parseDouble(args[4]);
@@ -43,7 +60,10 @@ public class Main {
                 int maxDepth = Integer.parseInt(args[9]);
                 boolean isVariable = Boolean.parseBoolean(args[10]);
                 
-                File file = new File( demfile );
+                
+                // READ INPUT
+                
+                File file = new File( dempath );
 
                 AbstractGridFormat format = GridFormatFinder.findFormat( file );
                 GridCoverage2DReader reader = format.getReader( file );
@@ -51,14 +71,60 @@ public class Main {
                 GridCoverage2D dem = (GridCoverage2D) reader.read(null);
                 CoordinateReferenceSystem crs = dem.getCoordinateReferenceSystem2D();
                 
+                // CONSTRUCT HACHURES
+                
                 HachureBuilder builder = new HachureBuilder(dem, z0, dz);
                 
                 FeatureCollection hachures = builder.getHachures(dist, minDist, 
                         step, minSlope, maxTurn, maxDepth, isVariable);
                 
+                // WRITE OUTPUT
                 
+                File outfile = new File( outpath );
+                ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
+                Map<String, Serializable> params = new HashMap<>();
+                params.put("url", outfile.toURI().toURL());
+                params.put("create spatial index", Boolean.TRUE);
+
+                ShapefileDataStore dataStore = (ShapefileDataStore) dataStoreFactory.createNewDataStore(params);
+                                        
+                final SimpleFeatureType TYPE = (SimpleFeatureType)hachures.getSchema();
                 
+                SimpleFeatureTypeBuilder sftb = new SimpleFeatureTypeBuilder();
+                sftb.init(TYPE);
+                sftb.setCRS(crs);
                 
+                dataStore.createSchema(sftb.buildFeatureType());
+               
+                String typeName = dataStore.getTypeNames()[0];
+                SimpleFeatureSource featureSource = dataStore.getFeatureSource(typeName);
+                SimpleFeatureStore featureStore = (SimpleFeatureStore) featureSource;
+
+                SimpleFeatureIterator features = (SimpleFeatureIterator) hachures.features();
+                while(features.hasNext()){
+                    SimpleFeature f = features.next();
+                    LineString l = (LineString)f.getDefaultGeometry();
+                    if(l.isClosed()){
+                        int c = 0;
+                    }
+                    if(l.getStartPoint().getCoordinate().x == l.getEndPoint().getCoordinate().x){
+                        int c = 0;
+                    }
+                }
+
+                Transaction transaction = new DefaultTransaction("create");
+                try{
+                    featureStore.setTransaction(transaction);
+                    featureStore.addFeatures(hachures);
+                    transaction.commit();
+                } catch (IOException problem){
+                    transaction.rollback();
+                } finally {
+                    transaction.close();
+                }
+                    
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             } catch(NumberFormatException e){
                 System.err.println("ARGUMENTS ERROR: Invalid type");
             } catch(IOException e){
