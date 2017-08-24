@@ -22,7 +22,6 @@ public class GridProcessor {
     public GridProcessor(GridCoverage2D gc){
         h = new GridHeader(gc);
         
-        
         System.out.println("Converting raster");
         System.out.println(h.nrow);
         System.out.println(h.ncol);

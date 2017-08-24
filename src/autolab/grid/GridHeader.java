@@ -73,8 +73,8 @@ public class GridHeader {
     }
     
     public GridHeader(GridCoverage2D cov){
-            zmin = (float) cov.getSampleDimension(0).getRange().getMinimum();
-            zmax = (float) cov.getSampleDimension(0).getRange().getMaximum();
+            zmin = (float) cov.getSampleDimension(0).getMinimumValue();
+            zmax = (float) cov.getSampleDimension(0).getMaximumValue();
             zk = (float) cov.getSampleDimension(0).getScale();
 
             GridGeometry2D g2d = cov.getGridGeometry();
