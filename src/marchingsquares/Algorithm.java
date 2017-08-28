@@ -180,7 +180,7 @@ public class Algorithm
       return result;
    }
 
-   GeneralPath[] buildContours(final double[][] data, final double[] levels)
+   public GeneralPath[] buildContours(final double[][] data, final double[] levels) // TSAMSONOV > public
    throws InterruptedException, ExecutionException {
       long t = -System.currentTimeMillis();
       // find min, max, and guard
@@ -206,7 +206,8 @@ public class Algorithm
          // IMPORTANT: pad data to ensure resulting linear strings are closed
          final double guard = min - 1;
          double padded[][] = pad(data, guard);
-
+         
+         isovalues = levels; // TSAMSONOV > added
          result = doConcurrent(padded);
       }
       t += System.currentTimeMillis();

@@ -5,6 +5,7 @@
  */
 package autolab.hachurebuilder;
 
+import autolab.grid.ESRIASCIIGridHeader;
 import autolab.grid.HachureBuilder;
 import com.vividsolutions.jts.geom.LineString;
 import java.io.File;
@@ -28,7 +29,22 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 
 import autolab.grid.EsriASCIIGridReader;
+import com.vividsolutions.jts.awt.ShapeReader;
+import com.vividsolutions.jts.geom.CoordinateSequence;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.MultiLineString;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.Scanner;
+import java.util.concurrent.ExecutionException;
+import marchingsquares.Algorithm;
+import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.geometry.jts.JTSFactoryFinder;
 /**
  *
  * @author tsamsonov
@@ -84,14 +100,51 @@ public class Main {
                 
                 double[][] mtx = EsriASCIIGridReader.readDoubleMatrix(file);
                 
+                FileInputStream fis = new FileInputStream(file.getAbsolutePath());
+                Scanner scanner = EsriASCIIGridReader.createUSScanner(fis);       
+                ESRIASCIIGridHeader header = new ESRIASCIIGridHeader();
+                header.readHeader(scanner);
+                
+                double lon0 = header.west;
+                double lat0 = header.south;
+                int cellsX = header.cols;
+                int cellsY = header.rows;
+                double lon1 = lon0 + cellsX * header.cellSize;
+                double lat1 = lat0 + cellsY * header.cellSize;
+                
                 double[] levels = new double[4]; // create 1-D array of thresholds.
                 levels[0] = 600;
                 levels[1] = 800;
                 levels[2] = 1000;
                 levels[3] = 1200;
-
-                GeneralPath[] isolines = Algorithm(mtx, levels);
+                    
+                Algorithm alg = new Algorithm();
+                GeneralPath[] isolines = alg.buildContours(mtx, levels);
                 
+                AffineTransform xf = new AffineTransform();
+       
+                xf.translate(lon0, lat0);
+                xf.scale((lon1 - lon0) / (cellsX - 1), (lat1 - lat0) / (cellsY - 1));
+                xf.translate(-1, -1); // Because MxN data was padded to (M+2)x(N+2).
+                for (int i = 0; i < isolines.length; i++) {
+                    isolines[i].transform(xf); // Permanent mapping to world coords.
+                }
+//                SimpleFeatureTypeBuilder typeBuilder = new SimpleFeatureTypeBuilder();        
+//                typeBuilder.setName("Contours");                
+//                Class geomType = LineString.class;
+//                typeBuilder.add("Location", geomType);
+//                typeBuilder.add("Level", Double.class);
+//                final SimpleFeatureType TYPE = typeBuilder.buildFeatureType();
+                GeometryFactory gFactory = JTSFactoryFinder.getGeometryFactory();
+//                SimpleFeatureBuilder fBuilder = new SimpleFeatureBuilder(TYPE);
+                
+                ArrayList<Geometry> contours = new ArrayList<>();
+                for(int i = 0; i < isolines.length; i++){
+                    Geometry cnt = ShapeReader.read(isolines[i].getPathIterator(null), gFactory);
+                    contours.add(cnt);
+                }
+
+//                
                 GridCoverage2D dem = EsriASCIIGridReader.read(file);
                 
 //                GridCoverageReader reader = new ArcGridReader(file);
@@ -159,6 +212,10 @@ public class Main {
                 System.err.println(e.getMessage());
                 e.printStackTrace();
                 System.err.println("READ ERROR: Failed to read DEM file");
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ExecutionException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }

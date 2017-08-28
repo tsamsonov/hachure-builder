@@ -14,12 +14,12 @@ import java.util.Scanner;
  */
 public class ESRIASCIIGridHeader {
 
-        protected int cols = 0;
-        protected int rows = 0;
-        protected double west = Double.NaN;
-        protected double south = Double.NaN;
-        protected double cellSize = Double.NaN;
-        protected float noDataValue = Float.NaN;
+        public int cols = 0;
+        public int rows = 0;
+        public double west = Double.NaN;
+        public double south = Double.NaN;
+        public double cellSize = Double.NaN;
+        public float noDataValue = Float.NaN;
 
         /*
          * returns whether valid values have been found

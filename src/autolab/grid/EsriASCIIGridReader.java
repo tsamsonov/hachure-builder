@@ -275,7 +275,7 @@ public class EsriASCIIGridReader {
      * @return
      * @throws FileNotFoundException
      */
-    private static Scanner createUSScanner(InputStream is) throws FileNotFoundException {
+    public static Scanner createUSScanner(InputStream is) throws FileNotFoundException {
         Scanner scanner = new Scanner(is, "US-ASCII");
         scanner.useLocale(Locale.US);
         return scanner;
